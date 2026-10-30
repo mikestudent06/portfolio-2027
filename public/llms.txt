@@ -1,0 +1,23 @@
+# Michel Mouhani
+
+Développeur full-stack et mobile basé à Pointe-Noire, Congo-Brazzaville.
+Fondateur d’Apkaid. Intervient aussi via Ginov (France).
+
+## Contact
+- Email: michel.mouhani@outlook.com
+- Téléphone: +242 06 986 58 00
+- LinkedIn: https://www.linkedin.com/in/michel-mouhani-b563b1262
+- GitHub: https://github.com/mikestudent06
+
+## Offre
+Sites vitrines SEO, applications web, applications React Native, e-commerce.
+
+## Stack
+Next.js, React, React Native, Node.js, NestJS, TypeScript, MongoDB.
+
+## Pages
+- / expérience 3D
+- /a-propos
+- /projets
+- /services
+- /contact
