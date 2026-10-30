@@ -39,7 +39,7 @@ function configureRenderer(renderer: THREE.WebGLRenderer, small: boolean) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = !small;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 }
 
 function createRenderer(
@@ -47,7 +47,7 @@ function createRenderer(
   small: boolean,
 ): { renderer: THREE.WebGLRenderer; canvas: HTMLCanvasElement } | null {
   const params: Omit<THREE.WebGLRendererParameters, "canvas"> = {
-    antialias: false,
+    antialias: true,
     alpha: false,
     powerPreference: "default",
     failIfMajorPerformanceCaveat: false,
@@ -529,11 +529,19 @@ export function mountExperience(): () => void {
   box(0.26, 0.015, 0.18, M.plastic, 0, 0.008, 0, monitor);
   box(0.045, 0.36, 0.03, M.plastic, 0, 0.19, -0.05, monitor);
   box(0.98, 0.58, 0.035, M.plastic, 0, 0.43, 0, monitor);
-  const rtSize: [number, number] = small ? [768, 432] : [1280, 720];
+  // The camera ends up filling the viewport with this screen, so match its resolution.
+  const rtSize: [number, number] = [0, 0];
+  const sizeScreen = () => {
+    const w = Math.round(THREE.MathUtils.clamp(innerWidth * renderer.getPixelRatio(), 1024, 2560));
+    rtSize[0] = w;
+    rtSize[1] = Math.round((w * 9) / 16);
+  };
+  sizeScreen();
   const rt = new THREE.WebGLRenderTarget(rtSize[0], rtSize[1], {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     colorSpace: THREE.SRGBColorSpace,
+    samples: renderer.capabilities.isWebGL2 ? 4 : 0,
   });
   const screen = new THREE.Mesh(
     new THREE.PlaneGeometry(0.9, 0.5),
@@ -662,47 +670,60 @@ export function mountExperience(): () => void {
   const pendant = new THREE.Group();
   pendant.position.set(0.05, 0, -0.12);
   room.add(pendant);
-  markLamp(cyl(0.006, 0.006, 0.46, M.plastic, 0, 3.16, 0, pendant, 8));
+  markLamp(cyl(0.055, 0.055, 0.025, M.plastic, 0, 3.385, 0, pendant, 32));
+  markLamp(cyl(0.006, 0.006, 0.4, M.plastic, 0, 3.18, 0, pendant, 12));
   const pShadeMat = std(0x2a2e36, 0.42, 0.18, {
     side: THREE.DoubleSide,
     emissive: 0xffe8b0,
-    emissiveIntensity: 0.45,
+    emissiveIntensity: 0.12,
   });
-  const pShade = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.28, 0.16, 24, 1, true), pShadeMat);
+  const pShade = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.28, 0.16, 64, 1, true), pShadeMat);
   pShade.position.y = 2.9;
-  pShade.castShadow = true;
   pendant.add(pShade);
-  lampPick.push(pShade);
+  const pCap = new THREE.Mesh(new THREE.CircleGeometry(0.15, 64), pShadeMat);
+  pCap.rotation.x = -Math.PI / 2;
+  pCap.position.y = 2.98;
+  pendant.add(pCap);
   const pInner = new THREE.Mesh(
-    new THREE.CircleGeometry(0.13, 22),
+    new THREE.CircleGeometry(0.265, 64),
     new THREE.MeshBasicMaterial({ color: 0xfff4d0, toneMapped: false, side: THREE.DoubleSide }),
   );
   pInner.rotation.x = Math.PI / 2;
-  pInner.position.y = 2.84;
+  pInner.position.y = 2.83;
   pendant.add(pInner);
-  lampPick.push(pInner);
+  lampPick.push(pShade, pCap, pInner);
 
   const deskLamp = new THREE.Group();
   deskLamp.position.set(1.05, 0.775, 0.22);
   deskLamp.rotation.y = -0.55;
   room.add(deskLamp);
-  markLamp(cyl(0.07, 0.09, 0.02, M.plastic, 0, 0.012, 0, deskLamp, 16));
-  markLamp(cyl(0.016, 0.016, 0.26, M.brass, 0, 0.15, 0, deskLamp, 10));
-  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.3, 8), M.brass);
-  arm.position.set(0.1, 0.36, 0);
-  arm.rotation.z = Math.PI / 2.5;
-  arm.castShadow = true;
-  deskLamp.add(arm);
-  lampPick.push(arm);
+  cyl(0.075, 0.09, 0.022, M.plastic, 0, 0.011, 0, deskLamp, 40);
+  const elbow = new THREE.Vector3(0.05, 0.3, 0);
+  const tip = new THREE.Vector3(0.22, 0.4, 0);
+  limb(new THREE.Vector3(0, 0.022, 0), elbow, 0.011, M.brass, deskLamp);
+  limb(elbow, tip, 0.009, M.brass, deskLamp);
+  const dHead = new THREE.Group();
+  dHead.position.copy(tip);
+  dHead.rotation.z = -0.35;
+  deskLamp.add(dHead);
   const dShadeMat = std(0xf4efe6, 0.48, 0, {
     side: THREE.DoubleSide,
     emissive: 0xfff1c2,
-    emissiveIntensity: 0.4,
+    emissiveIntensity: 0.25,
   });
-  const dShade = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 0.09, 16, 1, true), dShadeMat);
-  dShade.position.set(0.22, 0.45, 0);
-  deskLamp.add(dShade);
-  lampPick.push(dShade);
+  const dShade = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.1, 0.12, 48, 1, true), dShadeMat);
+  dShade.position.y = -0.05;
+  dHead.add(dShade);
+  const dCap = new THREE.Mesh(new THREE.SphereGeometry(0.036, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2), dShadeMat);
+  dCap.position.y = 0.01;
+  dHead.add(dCap);
+  const dBulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.028, 24, 16),
+    new THREE.MeshBasicMaterial({ color: 0xfff4d0, toneMapped: false }),
+  );
+  dBulb.position.y = -0.08;
+  dHead.add(dBulb);
+  lampPick.push(deskLamp);
 
   const chair = new THREE.Group();
   chair.position.set(0.17, 0, -0.92);
@@ -843,7 +864,7 @@ export function mountExperience(): () => void {
   ceilingLight.position.set(0.05, 2.88, -0.12);
   room.add(ceilingLight);
   const deskLampLight = new THREE.PointLight(0xffe4b5, 0.45, 3.6, 2);
-  deskLampLight.position.set(0.22, 0.42, 0);
+  deskLampLight.position.set(0.2, 0.3, 0);
   deskLamp.add(deskLampLight);
   const doorLight = new THREE.PointLight(0xffb070, 0, 7, 2);
   doorLight.position.set(2.6, 1.6, -3.5);
@@ -856,26 +877,28 @@ export function mountExperience(): () => void {
 
   function applyLighting() {
     const day = lampOn;
-    const bg = day ? 0xdce8f2 : 0x0a1018;
+    const bg = day ? 0xdce8f2 : 0x121b28;
     room.background = new THREE.Color(bg);
-    room.fog = new THREE.Fog(bg, day ? 16 : 8, day ? 30 : 16);
-    hemi.intensity = day ? 0.95 : 0.1;
-    hemi.color.set(day ? 0xfff8f0 : 0x6a7ca0);
-    hemi.groundColor.set(day ? 0xc4b8a8 : 0x1a1520);
-    sun.intensity = day ? 1.5 : 0.08;
-    sun.color.set(day ? 0xfff6e8 : 0x6e86b8);
-    fill.intensity = day ? 0.48 : 0.05;
-    windowLight.intensity = day ? 1.05 : 0.16;
-    windowLight.color.set(day ? 0xfff4dc : 0x8aa8d0);
+    room.fog = new THREE.Fog(bg, day ? 16 : 14, day ? 30 : 28);
+    // Night stays readable: cool moonlight + the monitor glow instead of near-black.
+    hemi.intensity = day ? 0.95 : 0.42;
+    hemi.color.set(day ? 0xfff8f0 : 0x8a9cc4);
+    hemi.groundColor.set(day ? 0xc4b8a8 : 0x2a2433);
+    sun.intensity = day ? 1.5 : 0.35;
+    sun.color.set(day ? 0xfff6e8 : 0x8098cc);
+    fill.intensity = day ? 0.48 : 0.2;
+    windowLight.intensity = day ? 1.05 : 0.6;
+    windowLight.color.set(day ? 0xfff4dc : 0x9ab4dc);
     ceilingLight.intensity = day ? 1.55 : 0;
-    deskLampLight.intensity = day ? 0.45 : 0;
-    screenLight.intensity = day ? 0.22 : 1.85;
-    renderer.toneMappingExposure = day ? 1.16 : 0.9;
+    deskLampLight.intensity = day ? 0.6 : 0;
+    screenLight.intensity = day ? 0.22 : 2.2;
+    renderer.toneMappingExposure = day ? 1.16 : 1.1;
     skyMat.map = day ? skyDay : skyNight;
     skyMat.needsUpdate = true;
-    pShadeMat.emissiveIntensity = day ? 0.45 : 0;
-    dShadeMat.emissiveIntensity = day ? 0.4 : 0;
-    (pInner.material as THREE.MeshBasicMaterial).color.set(day ? 0xfff4d0 : 0x1a1814);
+    pShadeMat.emissiveIntensity = day ? 0.12 : 0;
+    dShadeMat.emissiveIntensity = day ? 0.25 : 0;
+    (pInner.material as THREE.MeshBasicMaterial).color.set(day ? 0xfff4d0 : 0x2a2620);
+    (dBulb.material as THREE.MeshBasicMaterial).color.set(day ? 0xfff4d0 : 0x2a2620);
     (beyond.material as THREE.MeshBasicMaterial).color.set(day ? 0xffe8c8 : 0x1a1008);
     lampBtn.setAttribute("aria-pressed", day ? "true" : "false");
     lampBtn.textContent = day ? "Lampe · jour" : "Lampe · nuit";
@@ -1423,6 +1446,8 @@ export function mountExperience(): () => void {
 
   const onResize = () => {
     renderer.setSize(innerWidth, innerHeight, false);
+    sizeScreen();
+    rt.setSize(rtSize[0], rtSize[1]);
     roomCam.aspect = innerWidth / innerHeight;
     setFov();
     buildPaths();
