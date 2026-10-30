@@ -17,6 +17,7 @@ export type Project = {
   fonctionnalites: string[];
   stack: string[];
   featured?: boolean;
+  image?: string;
 };
 
 export type Experience = {
@@ -182,12 +183,34 @@ export const valeurs = [
 
 export const projets: Project[] = [
   {
+    slug: "kolingua",
+    titre: "Kolingua — apprendre l’anglais",
+    categorie: "Éducation",
+    annee: "2026",
+    couleur: "#c45a28",
+    lien: "https://kolingua.apkaid.com/",
+    image: "/projets/kolingua.png",
+    featured: true,
+    description:
+      "Application pour apprendre l’anglais depuis zéro, avec des leçons courtes, des fiches en français, de l’audio à répéter et des vidéos de pratique. Chapitre 1 gratuit, Premium pour le parcours complet.",
+    probleme:
+      "Les apps de langues sont souvent des jeux de cartes sans parcours clair, et rarement expliquées en français pour un public au Congo.",
+    fonctionnalites: [
+      "7 chapitres d’anglais débutant, du salut aux mini-dialogues",
+      "Fiche pédagogique en français dans chaque leçon",
+      "Exercices, prononciation audio et onglet Pratique vidéo",
+      "Offre gratuite + Premium (web, iOS bientôt, Android sur demande)",
+    ],
+    stack: ["Next.js", "TypeScript", "React Native", "Expo"],
+  },
+  {
     slug: "apkaid",
     titre: "Apkaid — agence digitale",
     categorie: "Site vitrine",
     annee: "2025",
     couleur: "#7fd4e0",
     lien: "https://apkaid.com/",
+    image: "/projets/apkaid.png",
     featured: true,
     description:
       "Site vitrine de l’agence que j’ai fondée à Pointe-Noire. Présenter l’offre (web, mobile, UI/UX), le processus client et convertir les visiteurs en briefs clairs.",
@@ -287,6 +310,7 @@ export const projets: Project[] = [
     annee: "2024",
     couleur: "#f2c862",
     lien: "https://candid-begonia-e3c199.netlify.app/",
+    image: "/projets/lordson-congo.png",
     featured: true,
     description:
       "Site professionnel pour une entreprise d’offshore et d’échafaudage. Clarifier l’offre, inspirer confiance et rendre l’expertise lisible pour des clients industriels.",
@@ -376,6 +400,7 @@ export const projets: Project[] = [
     annee: "2024",
     couleur: "#8fa8ff",
     lien: "https://decrea.vercel.app/",
+    image: "/projets/decrea.png",
     description:
       "Site d’une agence spécialisée logos et identités. Montrer le goût, le portfolio et les offres sans alourdir la navigation.",
     probleme:
@@ -393,6 +418,7 @@ export const projets: Project[] = [
     categorie: "Plateforme",
     annee: "2024",
     couleur: "#6fe0b0",
+    image: "/projets/cogym.png",
     description:
       "Plateforme d’entraînement personnalisé : programmes, suivi des utilisateurs et parcours simple pour s’exercer régulièrement.",
     probleme:
@@ -411,6 +437,7 @@ export const projets: Project[] = [
     annee: "2024",
     couleur: "#f2c862",
     lien: "https://gymo.vercel.app/",
+    image: "/projets/gymo.jpg",
     description:
       "Application pour trouver des exercices adaptés, avec démonstrations YouTube. Recherche, filtres et lecture intégrée.",
     probleme:
@@ -429,6 +456,7 @@ export const projets: Project[] = [
     annee: "2024",
     couleur: "#7fd4e0",
     lien: "https://pitcheur.vercel.app/",
+    image: "/projets/pitcheur.jpg",
     description:
       "Espace pour présenter une idée, découvrir d’autres projets et croiser des profils. Auth via Clerk, pensé pour le networking.",
     probleme:
@@ -466,6 +494,7 @@ export const projets: Project[] = [
     annee: "2023",
     couleur: "#f0a060",
     lien: "https://dino-game-pearl.vercel.app/",
+    image: "/projets/dino-jump.png",
     description:
       "Jeu de saut inspiré du dino Chrome : timing, obstacles, score. Un exercice de gameplay web, utile pour les animations et la boucle de jeu.",
     probleme:

@@ -126,6 +126,8 @@ export function Experience() {
       <div id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
         <div className="modal-card">
           <div className="modal-visual">
+            {/* eslint-disable-next-line @next/next/no-img-element -- engine swaps src at runtime */}
+            <img id="m-preview" alt="" hidden />
             <canvas id="m-canvas" width={1120} height={400} />
           </div>
           <button className="modal-close" id="m-close" type="button" aria-label="Fermer la fiche">

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import { JsonLd } from "@/components/JsonLd";
+import { AmbientAudio } from "@/components/site/AmbientAudio";
 import { SkipLink } from "@/components/site/SkipLink";
 import { personJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import { rootMetadata } from "@/lib/seo";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className={bricolage.className}>
         <JsonLd data={[personJsonLd(), websiteJsonLd()]} />
         <SkipLink />
+        <AmbientAudio />
         {children}
       </body>
     </html>

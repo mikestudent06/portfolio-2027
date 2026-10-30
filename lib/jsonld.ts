@@ -130,6 +130,7 @@ export function projectJsonLd(project: Project) {
     inLanguage: "fr-FR",
     keywords: project.stack.join(", "),
     url: absoluteUrl(`/projets/${project.slug}`),
+    ...(project.image ? { image: absoluteUrl(project.image) } : {}),
     ...(project.lien ? { sameAs: project.lien } : {}),
   };
 }

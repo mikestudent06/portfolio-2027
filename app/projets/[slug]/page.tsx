@@ -50,6 +50,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       </p>
       <h1>{project.titre}</h1>
       <p className="lede">{project.description}</p>
+      {project.image ? (
+        <div className="project-hero">
+          {/* eslint-disable-next-line @next/next/no-img-element -- local public screenshots */}
+          <img src={project.image} alt={`Interface de ${project.titre}`} />
+        </div>
+      ) : null}
       <div className="actions">
         {project.lien ? (
           <a className="btn" href={project.lien} target="_blank" rel="noopener noreferrer">

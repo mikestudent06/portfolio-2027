@@ -167,6 +167,18 @@ export function mountExperience(): () => void {
     return t;
   }
 
+  function redraw(
+    tex: THREE.CanvasTexture,
+    fn: (g: CanvasRenderingContext2D, w: number, h: number) => void,
+  ) {
+    const c = tex.image as HTMLCanvasElement;
+    const g = c.getContext("2d");
+    if (!g) return;
+    g.clearRect(0, 0, c.width, c.height);
+    fn(g, c.width, c.height);
+    tex.needsUpdate = true;
+  }
+
   const std = (
     color: number,
     rough = 0.85,
@@ -1030,13 +1042,51 @@ export function mountExperience(): () => void {
   inner.add(titlePlane);
 
   const cards: Card[] = [];
+  const previewImgs: Array<HTMLImageElement | null> = [];
   const SPACING = 6;
   const FIRST = -8;
 
-  function drawCard(g: CanvasRenderingContext2D, w: number, h: number, p: Project, i: number) {
+  function drawCover(
+    g: CanvasRenderingContext2D,
+    img: HTMLImageElement,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+  ) {
+    const ir = img.width / img.height;
+    const r = w / h;
+    let sx = 0;
+    let sy = 0;
+    let sw = img.width;
+    let sh = img.height;
+    if (ir > r) {
+      sw = img.height * r;
+      sx = (img.width - sw) / 2;
+    } else {
+      sh = img.width / r;
+      sy = (img.height - sh) / 2;
+    }
+    g.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
+
+  function drawCard(
+    g: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    p: Project,
+    i: number,
+    preview?: HTMLImageElement | null,
+  ) {
     g.fillStyle = "#0b111b";
     g.fillRect(0, 0, w, h);
-    drawArt(g, 0, 0, w, 470, p.couleur, 100 + i * 7);
+    if (preview) {
+      drawCover(g, preview, 0, 0, w, 470);
+      g.fillStyle = "rgba(11,17,27,.35)";
+      g.fillRect(0, 0, w, 470);
+    } else {
+      drawArt(g, 0, 0, w, 470, p.couleur, 100 + i * 7);
+    }
     g.fillStyle = "rgba(255,255,255,.92)";
     g.font = `800 150px ${FONT}`;
     g.fillText(String(i + 1), 50, 170);
@@ -1080,6 +1130,16 @@ export function mountExperience(): () => void {
     line.position.set(0, -1.59, 0);
     grp.add(line);
     cards.push({ grp, mesh, glow, side, hover: 0, z: grp.position.z });
+    previewImgs[i] = null;
+    if (p.image) {
+      const img = new Image();
+      img.onload = () => {
+        previewImgs[i] = img;
+        const map = mesh.material as THREE.MeshBasicMaterial;
+        if (map.map) redraw(map.map as THREE.CanvasTexture, (g, w, h) => drawCard(g, w, h, p, i, img));
+      };
+      img.src = p.image;
+    }
   });
 
   const PORTAL_Z = FIRST - (projects.length - 1) * SPACING - 7;
@@ -1329,9 +1389,20 @@ export function mountExperience(): () => void {
     } else {
       live.hidden = true;
     }
+    const previewEl = $("m-preview") as HTMLImageElement;
     const c = $("m-canvas") as HTMLCanvasElement;
-    const ctx = c.getContext("2d");
-    if (ctx) drawArt(ctx, 0, 0, c.width, c.height, p.couleur, 100 + i * 7);
+    if (p.image) {
+      previewEl.src = p.image;
+      previewEl.alt = `Aperçu de ${p.titre}`;
+      previewEl.hidden = false;
+      c.hidden = true;
+    } else {
+      previewEl.removeAttribute("src");
+      previewEl.hidden = true;
+      c.hidden = false;
+      const ctx = c.getContext("2d");
+      if (ctx) drawArt(ctx, 0, 0, c.width, c.height, p.couleur, 100 + i * 7);
+    }
     lastFocus = document.activeElement as HTMLElement | null;
     $("modal").classList.add("open");
     $("m-close").focus();
@@ -1457,14 +1528,6 @@ export function mountExperience(): () => void {
   cleanups.push(() => removeEventListener("resize", onResize));
 
   function rebuildCanvasTextures() {
-    const redraw = (tex: THREE.CanvasTexture, fn: (g: CanvasRenderingContext2D, w: number, h: number) => void) => {
-      const c = tex.image as HTMLCanvasElement;
-      const g = c.getContext("2d");
-      if (!g) return;
-      g.clearRect(0, 0, c.width, c.height);
-      fn(g, c.width, c.height);
-      tex.needsUpdate = true;
-    };
     redraw(titleTex, (g, w) => drawTitle(g, w));
     redraw(contactTex, (g, w) => {
       g.textAlign = "center";
@@ -1474,7 +1537,7 @@ export function mountExperience(): () => void {
     });
     cards.forEach((c, i) => {
       const map = (c.mesh.material as THREE.MeshBasicMaterial).map as THREE.CanvasTexture;
-      redraw(map, (g, w, h) => drawCard(g, w, h, projects[i], i));
+      redraw(map, (g, w, h) => drawCard(g, w, h, projects[i], i, previewImgs[i]));
     });
   }
 

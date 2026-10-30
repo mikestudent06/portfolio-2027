@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = pageMetadata({
   title: "Projets",
-  description: `Applications web, mobiles et sites livrés par ${person.nomComplet} : Apkaid, HAMI, Sprint Job, Toud, Lordson Congo et d’autres réalisations.`,
+  description: `Applications web, mobiles et sites livrés par ${person.nomComplet} : Kolingua, Apkaid, HAMI, Sprint Job, Toud, Lordson Congo et d’autres réalisations.`,
   path: "/projets",
 });
 
@@ -33,11 +33,19 @@ export default function ProjectsPage() {
       <div className="grid cards">
         {projets.map((project) => (
           <Link className="card" key={project.slug} href={`/projets/${project.slug}`}>
-            <p className="meta">
-              {project.categorie} · {project.annee}
-            </p>
-            <h2>{project.titre}</h2>
-            <p>{project.description}</p>
+            {project.image ? (
+              <div className="card-media">
+                {/* eslint-disable-next-line @next/next/no-img-element -- local public screenshots */}
+                <img src={project.image} alt="" />
+              </div>
+            ) : null}
+            <div className="card-body">
+              <p className="meta">
+                {project.categorie} · {project.annee}
+              </p>
+              <h2>{project.titre}</h2>
+              <p>{project.description}</p>
+            </div>
           </Link>
         ))}
       </div>
