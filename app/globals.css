@@ -265,6 +265,44 @@ img {
   max-width: 44ch;
 }
 
+#about .blog-hint {
+  margin: 1em 0 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.book-tip {
+  position: fixed;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 12px);
+  z-index: 12;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 92%, #000);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    visibility 0.22s;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.book-tip.on {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
 .skills {
   display: flex;
   flex-wrap: wrap;
@@ -1038,8 +1076,17 @@ html.portal-open .panel {
     0 30px 60px rgba(0, 0, 0, 0.45);
 }
 
-.note-date {
+.note-kicker {
   margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #1f3a5f;
+  font-weight: 700;
+}
+
+.note-date {
+  margin: 0.35em 0 0;
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;

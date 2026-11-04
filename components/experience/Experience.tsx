@@ -88,7 +88,14 @@ export function Experience() {
         <p className="body" id="about-body">
           {copy.apropos}
         </p>
+        <p className="blog-hint" id="blog-hint">
+          {copy.blogTip}
+        </p>
       </section>
+
+      <div id="book-tip" className="book-tip" role="status" aria-live="polite">
+        {copy.blogTip}
+      </div>
 
       <div className="panel" id="cue">
         <i />

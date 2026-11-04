@@ -1,7 +1,7 @@
 # Michel Mouhani
 
-Développeur full-stack et mobile basé à Pointe-Noire, Congo-Brazzaville.
-Fondateur d’Apkaid. Intervient aussi via Ginov (France).
+Développeur et fondateur d’Apkaid Solution, basé à Pointe-Noire, Congo-Brazzaville.
+Intervient aussi via Ginov (France).
 
 ## Contact
 - Email: michel.mouhani@outlook.com
@@ -10,13 +10,10 @@ Fondateur d’Apkaid. Intervient aussi via Ginov (France).
 - GitHub: https://github.com/mikestudent06
 
 ## Offre
-Sites vitrines SEO, applications web, applications React Native, e-commerce.
-
-## Stack
-Next.js, React, React Native, Node.js, NestJS, TypeScript, MongoDB.
+Sites vitrines, applications web et mobiles, e-commerce — pensés pour convertir et être trouvés.
 
 ## Pages
-- / expérience 3D
+- / expérience 3D (bureau + blog sur les livres)
 - /a-propos
 - /projets
 - /services

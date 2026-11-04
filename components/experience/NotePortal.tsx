@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { notes, type Note } from "@/lib/content";
+import { copy, notes, type Note } from "@/lib/content";
 
 export const ENTER_NOTE = "mm:enter-note";
 export const LEAVE_NOTE = "mm:leave-note";
@@ -62,6 +62,7 @@ export function NotePortal() {
         <span aria-hidden="true">←</span> Bureau
       </button>
       <article className="note-book">
+        <p className="note-kicker">{copy.blogKicker}</p>
         <p className="note-date">{note.date}</p>
         <h2 id="note-title">{note.titre}</h2>
         {note.corps.map((p) => (
