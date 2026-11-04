@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import {
   copy,
+  cvDownloads,
   featuredProjects,
   liens,
   person,
@@ -127,6 +128,17 @@ export function Experience() {
           {liens.map((link) => (
             <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer">
               {link.label}
+            </a>
+          ))}
+          {cvDownloads.map((cv) => (
+            <a
+              key={cv.lang}
+              className="cv-link"
+              href={cv.href}
+              download={cv.filename}
+              lang={cv.lang}
+            >
+              {cv.label}
             </a>
           ))}
         </div>

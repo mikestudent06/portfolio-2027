@@ -182,9 +182,27 @@ export const liens: SocialLink[] = [
   },
   { label: "GitHub", url: "https://github.com/mikestudent06" },
   { label: "X", url: "https://x.com/MouhaniMic44729" },
+];
+
+export type CvDownload = {
+  label: string;
+  href: string;
+  filename: string;
+  lang: "fr" | "en";
+};
+
+export const cvDownloads: CvDownload[] = [
   {
-    label: "Ancien portfolio",
-    url: "https://michelmouhani.apkaid.com/",
+    label: "CV · Français",
+    href: "/cv/Senior_Full-Stack_Product_Engineer_FR.pdf",
+    filename: "Michel_Mouhani_CV_FR.pdf",
+    lang: "fr",
+  },
+  {
+    label: "CV · English",
+    href: "/cv/Senior_Full-Stack_Product_Engineer_EN.pdf",
+    filename: "Michel_Mouhani_CV_EN.pdf",
+    lang: "en",
   },
 ];
 
@@ -193,7 +211,6 @@ export const sameAs = [
   "https://www.linkedin.com/in/michel-mouhani-b563b1262",
   "https://x.com/MouhaniMic44729",
   "https://apkaid.com/",
-  "https://michelmouhani.apkaid.com/",
 ];
 
 export const services = [

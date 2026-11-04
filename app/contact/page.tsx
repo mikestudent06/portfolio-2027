@@ -1,6 +1,6 @@
 import { JsonLd } from "@/components/JsonLd";
 import { PageShell } from "@/components/site/PageShell";
-import { copy, liens, person } from "@/lib/content";
+import { copy, cvDownloads, liens, person } from "@/lib/content";
 import { breadcrumbJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -44,6 +44,17 @@ export default function ContactPage() {
         {liens.map((link) => (
           <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer">
             {link.label}
+          </a>
+        ))}
+        {cvDownloads.map((cv) => (
+          <a
+            key={cv.lang}
+            className="cv-link"
+            href={cv.href}
+            download={cv.filename}
+            lang={cv.lang}
+          >
+            {cv.label}
           </a>
         ))}
       </div>
