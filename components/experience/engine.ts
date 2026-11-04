@@ -664,10 +664,14 @@ export function mountExperience(): () => void {
   box(1.45, 0.42, 0.4, M.oakPale, -2.05, 0.21, -3.58, room);
   box(1.45, 0.03, 0.42, M.desk, -2.05, 0.43, -3.58, room);
   box(0.02, 0.36, 0.38, std(0xcfc4b4, 0.5), -2.05, 0.21, -3.58, room, false);
+  // Decorative desk stacks only — blog interaction lives on the left shelf
+  box(0.16, 0.03, 0.11, std(0x8b2e2e, 0.7), -2.42, 0.46, -3.5, room);
+  box(0.16, 0.025, 0.12, std(0x1f3a5f, 0.7), -2.42, 0.488, -3.5, room);
+  box(0.16, 0.028, 0.1, std(0xc4a35a, 0.7), -2.42, 0.515, -3.5, room);
 
   type BlogBook = {
-    group: THREE.Group;
-    baseY: number;
+    visual: THREE.Group;
+    baseVisualY: number;
     hover: number;
     noteId: string;
   };
@@ -677,85 +681,89 @@ export function mountExperience(): () => void {
     return `#${n.toString(16).padStart(6, "0")}`;
   }
 
-  function makeBlogCover(note: Note, color: number) {
-    return canvasTex(512, 320, (g, w, h) => {
+  function makeSpineLabel(note: Note, color: number) {
+    return canvasTex(160, 640, (g, w, h) => {
       g.fillStyle = hexCss(color);
       g.fillRect(0, 0, w, h);
-      g.fillStyle = "rgba(255,255,255,0.1)";
-      g.fillRect(0, 0, w, 8);
+      g.fillStyle = "rgba(247,241,230,0.16)";
+      g.fillRect(0, 0, w, h);
+      g.save();
+      g.translate(w / 2, h * 0.55);
+      g.rotate(-Math.PI / 2);
+      g.textAlign = "center";
       g.fillStyle = "#f7f1e6";
-      g.font = `800 54px ${FONT}`;
-      g.fillText("BLOG", 28, 78);
-      g.fillStyle = "rgba(247,241,230,0.92)";
-      g.font = `700 42px ${FONT}`;
-      g.fillText(note.spine, 28, 140);
-      g.strokeStyle = "rgba(247,241,230,0.35)";
-      g.lineWidth = 4;
-      g.strokeRect(14, 14, w - 28, h - 28);
-      g.fillStyle = "rgba(247,241,230,0.55)";
-      g.font = `600 28px ${FONT}`;
-      g.fillText("Lire →", 28, h - 36);
+      g.font = `800 48px ${FONT}`;
+      g.fillText("BLOG", 0, -18);
+      g.font = `700 36px ${FONT}`;
+      g.fillText(note.spine, 0, 28);
+      g.restore();
+      g.fillStyle = "rgba(247,241,230,0.45)";
+      g.fillRect(10, 18, w - 20, 6);
+      g.fillRect(10, h - 24, w - 20, 6);
     });
   }
 
-  function addBlogBook(
-    w: number,
-    h: number,
-    d: number,
+  /** Upright shelf book: fixed hit box + visual child that lifts on hover (no shake). */
+  function addShelfBlogBook(
+    depth: number,
+    height: number,
+    thick: number,
     color: number,
     x: number,
     y: number,
     z: number,
     parent: THREE.Object3D,
     note: Note,
-    rotY = 0,
   ) {
-    const group = new THREE.Group();
-    group.position.set(x, y, z);
-    group.rotation.y = rotY;
-    parent.add(group);
+    const root = new THREE.Group();
+    root.position.set(x, y, z);
+    parent.add(root);
 
-    const body = box(w, h, d, std(color, 0.72), 0, 0, 0, group);
-    const pages = box(w * 0.92, h * 0.7, d * 0.04, std(0xf4efe6, 0.55), 0, 0, d / 2 - 0.008, group, false);
+    const visual = new THREE.Group();
+    root.add(visual);
 
-    const coverMap = makeBlogCover(note, color);
-    const label = new THREE.Mesh(
-      new THREE.PlaneGeometry(w * 0.9, d * 0.88),
-      new THREE.MeshBasicMaterial({ map: coverMap, toneMapped: false }),
+    const body = box(depth, height, thick, std(color, 0.72), 0, 0, 0, visual);
+    const pages = box(
+      depth * 0.04,
+      height * 0.9,
+      thick * 0.88,
+      std(0xf4efe6, 0.55),
+      depth / 2 - 0.006,
+      0,
+      0,
+      visual,
+      false,
     );
-    label.rotation.x = -Math.PI / 2;
-    label.position.y = h / 2 + 0.0015;
-    group.add(label);
 
-    const interact = { type: "book", noteId: note.id };
-    markPick(body, interact);
-    markPick(pages, interact);
-    markPick(label, interact);
-    blogBooks.push({ group, baseY: y, hover: 0, noteId: note.id });
-    return group;
+    const spineMap = makeSpineLabel(note, color);
+    const spine = new THREE.Mesh(
+      new THREE.PlaneGeometry(thick * 0.9, height * 0.88),
+      new THREE.MeshBasicMaterial({ map: spineMap, toneMapped: false }),
+    );
+    spine.rotation.y = Math.PI / 2;
+    spine.position.x = depth / 2 + 0.0012;
+    visual.add(spine);
+
+    // Invisible fixed collider — does not move with the lift, so raycasts stay stable
+    const hit = new THREE.Mesh(
+      new THREE.BoxGeometry(depth + 0.04, height + 0.08, thick + 0.02),
+      new THREE.MeshBasicMaterial({
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+      }),
+    );
+    hit.position.y = 0.02;
+    root.add(hit);
+    markPick(hit, { type: "book", noteId: note.id });
+
+    blogBooks.push({ visual, baseVisualY: 0, hover: 0, noteId: note.id });
+    return { root, body, pages };
   }
-
-  // Desk stack (side cabinet): red / blue / gold — primary blog affordance
-  const deskBlogNotes = notes.slice(0, 3);
-  const deskBlogColors = [0x8b2e2e, 0x1f3a5f, 0xc4a35a];
-  deskBlogNotes.forEach((note, i) => {
-    const thick = 0.028 + i * 0.004;
-    addBlogBook(
-      0.17,
-      thick,
-      0.125,
-      deskBlogColors[i],
-      -2.42,
-      0.46 + i * 0.032,
-      -3.5,
-      room,
-      note,
-      -0.12 + i * 0.04,
-    );
-  });
 
   const bookColors = [0x1f3a5f, 0x8b2e2e, 0xc4a35a, 0x2d5a45, 0x2b2b2b, 0xe8e0d4, 0x5c3d2e, 0x254e7a, 0x9a4a3a, 0x4a5568];
   const bookMats = bookColors.map((c) => std(c, 0.68));
+  const shelfBlogColors = [0x1f3a5f, 0x8b2e2e, 0x254e7a, 0x9a4a3a, 0x2d5a45];
   const shelf = new THREE.Group();
   shelf.position.set(-4.66, 0, -1.55);
   room.add(shelf);
@@ -767,6 +775,58 @@ export function mountExperience(): () => void {
   box(sw, sh, 0.03, M.oakPale, 0, sh / 2, sd / 2, shelf);
   const levels = [0.05, 0.5, 0.96, 1.42, 1.88, 2.26];
   levels.forEach((y) => box(sw, 0.03, sd, M.oakPale, 0, y, 0, shelf));
+
+  // Shelf plaque facing the room so the left library reads as blogs
+  const shelfBlogSignTex = canvasTex(512, 160, (g, w, h) => {
+    g.fillStyle = "#1f3a5f";
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = "#f7f1e6";
+    g.font = `800 72px ${FONT}`;
+    g.textAlign = "center";
+    g.fillText("BLOG", w / 2, 70);
+    g.font = `600 32px ${FONT}`;
+    g.fillStyle = "rgba(247,241,230,0.88)";
+    g.fillText("Survolez · cliquez", w / 2, 118);
+  });
+  const shelfBlogSign = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.28, 0.09),
+    new THREE.MeshBasicMaterial({
+      map: shelfBlogSignTex,
+      toneMapped: false,
+      transparent: true,
+      side: THREE.DoubleSide,
+    }),
+  );
+  shelfBlogSign.position.set(0.2, 2.1, 0);
+  shelfBlogSign.rotation.y = Math.PI / 2;
+  shelf.add(shelfBlogSign);
+
+  // Five blog books at fixed, readable spots on the left shelf (rows 1–3)
+  const shelfBlogSlots: Array<{ row: number; z: number; height: number; thick: number; depth: number }> = [
+    { row: 1, z: -0.85, height: 0.36, thick: 0.052, depth: 0.24 },
+    { row: 1, z: -0.35, height: 0.34, thick: 0.048, depth: 0.23 },
+    { row: 2, z: 0.15, height: 0.38, thick: 0.055, depth: 0.25 },
+    { row: 2, z: 0.65, height: 0.33, thick: 0.05, depth: 0.22 },
+    { row: 3, z: -0.2, height: 0.35, thick: 0.05, depth: 0.24 },
+  ];
+  const blogZones = shelfBlogSlots.map((slot, i) => {
+    const note = notes[i];
+    const color = shelfBlogColors[i % shelfBlogColors.length];
+    const y0 = levels[slot.row] + 0.016;
+    addShelfBlogBook(
+      slot.depth,
+      slot.height,
+      slot.thick,
+      color,
+      0.03,
+      y0 + slot.height / 2,
+      slot.z,
+      shelf,
+      note,
+    );
+    return { row: slot.row, z0: slot.z - slot.thick / 2 - 0.01, z1: slot.z + slot.thick / 2 + 0.01 };
+  });
+
   const br = rng(31);
   for (let row = 0; row < 5; row++) {
     const y0 = levels[row] + 0.016;
@@ -784,6 +844,13 @@ export function mountExperience(): () => void {
     while (z < limit) {
       const thick = 0.032 + br() * 0.04;
       if (z + thick > limit) break;
+      const overlapsBlog = blogZones.some(
+        (zone) => zone.row === row && z < zone.z1 && z + thick > zone.z0,
+      );
+      if (overlapsBlog) {
+        z = blogZones.find((zone) => zone.row === row && z < zone.z1 && z + thick > zone.z0)!.z1;
+        continue;
+      }
       const height = 0.26 + br() * 0.14;
       const depth = 0.2 + br() * 0.08;
       const m = box(depth, height, thick, bookMats[Math.floor(br() * bookMats.length)], 0.02, y0 + height / 2, z + thick / 2, shelf);
@@ -827,62 +894,8 @@ export function mountExperience(): () => void {
   handleMug.rotation.y = Math.PI / 2;
   handleMug.position.set(0.555, 0.81, 0.22);
   room.add(handleMug);
-
-  // Main desk pair (blue / red) — remaining blog articles, clearly labeled
-  const mainDeskNotes = notes.slice(3, 5);
-  const mainDeskColors = [0x254e7a, 0x9a4a3a];
-  mainDeskNotes.forEach((note, i) => {
-    addBlogBook(
-      0.18,
-      0.03,
-      0.13,
-      mainDeskColors[i],
-      0.78 + i * 0.02,
-      0.795 + i * 0.032,
-      -0.12 + i * 0.015,
-      room,
-      note,
-      0.35 - i * 0.1,
-    );
-  });
-
-  function makeBlogSign(
-    x: number,
-    y: number,
-    z: number,
-    rotY: number,
-    noteId: string,
-  ) {
-    const blogPlaqueTex = canvasTex(512, 180, (g, w, h) => {
-      g.fillStyle = "#1f3a5f";
-      g.fillRect(0, 0, w, h);
-      g.fillStyle = "#f7f1e6";
-      g.font = `800 78px ${FONT}`;
-      g.textAlign = "center";
-      g.fillText("BLOG", w / 2, 78);
-      g.font = `600 34px ${FONT}`;
-      g.fillStyle = "rgba(247,241,230,0.9)";
-      g.fillText("Survolez · cliquez", w / 2, 130);
-    });
-    const blogPlaque = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.26, 0.09),
-      new THREE.MeshBasicMaterial({
-        map: blogPlaqueTex,
-        toneMapped: false,
-        transparent: true,
-        side: THREE.DoubleSide,
-      }),
-    );
-    blogPlaque.position.set(x, y, z);
-    blogPlaque.rotation.y = rotY;
-    room.add(blogPlaque);
-    markPick(blogPlaque, { type: "book", noteId });
-    return blogPlaque;
-  }
-
-  // Standing signs next to both blog stacks so they read as blogs from the camera
-  makeBlogSign(-2.18, 0.58, -3.4, 0.4, notes[0].id);
-  makeBlogSign(0.62, 0.9, -0.05, 0.55, notes[3].id);
+  box(0.12, 0.025, 0.09, std(0x254e7a, 0.7), 0.88, 0.79, -0.18, room);
+  box(0.12, 0.02, 0.09, std(0x9a4a3a, 0.7), 0.89, 0.81, -0.17, room);
 
   const lampPick: THREE.Object3D[] = [];
   const markLamp = (m: THREE.Object3D) => {
@@ -1695,8 +1708,8 @@ export function mountExperience(): () => void {
       hoveringLamp = false;
       document.getElementById("book-tip")?.classList.remove("on");
       blogBooks.forEach((b) => {
-        b.hover += (0 - b.hover) * 0.18;
-        b.group.position.y = b.baseY + b.hover * 0.055;
+        b.hover += (0 - b.hover) * 0.14;
+        b.visual.position.y = b.baseVisualY + b.hover * 0.08;
       });
       if (portalOpen) {
         hovered = -1;
@@ -1747,8 +1760,9 @@ export function mountExperience(): () => void {
       }
       blogBooks.forEach((b) => {
         const active = hoverNoteId === b.noteId && !portalOpen;
-        b.hover += ((active ? 1 : 0) - b.hover) * 0.18;
-        b.group.position.y = b.baseY + b.hover * 0.055;
+        // Smooth ease toward lift — hit collider stays fixed, so no tremble
+        b.hover += ((active ? 1 : 0) - b.hover) * 0.14;
+        b.visual.position.y = b.baseVisualY + b.hover * 0.08;
       });
       let damp: number;
       if (state.world === 0) {

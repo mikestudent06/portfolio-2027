@@ -60,7 +60,7 @@ export const copy = {
   contact: "Un brief, une idée, un délai ? Écrivez-moi.",
   cue: "Entrez dans l’écran",
   projectsTip: "Cliquez pour ouvrir",
-  blogTip: "Blog — cliquez pour lire",
+  blogTip: "Bibliothèque — livres blog à gauche",
   blogKicker: "Blog",
   loaderReady: "Le bureau est prêt.",
   loaderWait: "Préparation du bureau…",
