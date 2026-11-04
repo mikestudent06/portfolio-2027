@@ -44,12 +44,10 @@ export const person = {
 } as const;
 
 export const copy = {
-  metier:
-    "Développeur full-stack & mobile au Congo-Brazzaville. Je conçois des applications web, des apps natives et des sites qui convertissent.",
-  heroHint: "Faites défiler pour entrer dans mon écran",
-  aproposTitre: "Derrière l’écran, il y a une méthode.",
-  apropos:
-    "Je construis des produits numériques pour des entreprises locales et internationales : sites vitrines pensés pour le SEO, plateformes métier, e-commerce sécurisé et applications iOS/Android. Stack principale : Next.js, React Native, Node.js et TypeScript — du premier pixel jusqu’au déploiement.",
+  metier: "Full-stack & mobile · Pointe-Noire",
+  heroHint: "Faites défiler",
+  aproposTitre: "Méthode avant effets.",
+  apropos: "Sites, apps et produits — Next.js, React Native, Node.js.",
   aproposLong: [
     "Développeur full-stack et mobile basé à Pointe-Noire, je conçois des applications web et mobiles, des sites vitrines et des boutiques e-commerce. Spécialisé en React, Node.js, TypeScript et React Native, j’allie rigueur technique, performance et expérience utilisateur.",
     "Chaque projet part d’un objectif business clair : application métier, site vitrine qui se trouve sur Google, ou plateforme e-commerce fiable. Du frontend au backend, je livre des solutions complètes, maintenables et évolutives.",
@@ -58,15 +56,70 @@ export const copy = {
   mission:
     "Créer des applications qui ne sont pas seulement fonctionnelles, mais réellement performantes et sécurisées — des produits que les utilisateurs apprécient et que les équipes peuvent maintenir.",
   contactTitre: "Travaillons ensemble.",
-  contact:
-    "Un site, une application, une refonte ? Décrivez-moi le besoin. Je réponds rapidement, depuis Pointe-Noire, pour des clients au Congo et à l’international.",
-  cue: "On entre dans l’écran",
-  projectsTip: "Cliquez sur un projet pour y entrer — sans quitter le site",
+  contact: "Un brief, une idée ? Écrivez-moi.",
+  cue: "Dans l’écran",
+  projectsTip: "Cliquez pour entrer",
   loaderReady: "Le bureau est prêt.",
   loaderWait: "Préparation du bureau…",
-  enter: "Entrer dans le bureau",
-  again: "Revenir au bureau",
+  enter: "Entrer",
+  again: "Revenir",
 } as const;
+
+export type Note = {
+  id: string;
+  titre: string;
+  date: string;
+  corps: string[];
+};
+
+/** Short notes surfaced when clicking books in the 3D office. */
+export const notes: Note[] = [
+  {
+    id: "seo-congo",
+    titre: "SEO local, sans jargon",
+    date: "2025",
+    corps: [
+      "Un site au Congo se trouve d’abord sur le téléphone. Pages rapides, titres clairs, Google Business — avant les fancy animations.",
+      "Je commence toujours par l’intention de recherche, pas par la maquette.",
+    ],
+  },
+  {
+    id: "mobile-first",
+    titre: "Ship mobile, think native",
+    date: "2025",
+    corps: [
+      "React Native quand l’app doit vivre hors navigateur. Progressive web quand le budget et le délai priment.",
+      "Le bon choix, c’est celui que l’utilisateur ouvre vraiment chaque semaine.",
+    ],
+  },
+  {
+    id: "apkaid-studio",
+    titre: "Apkaid, une agence légère",
+    date: "2025",
+    corps: [
+      "Peu de process, beaucoup de livrables. Brief → prototype → prod, avec un interlocuteur unique.",
+      "L’idée : la qualité d’un studio, la réactivité d’un indépendant.",
+    ],
+  },
+  {
+    id: "kolingua-note",
+    titre: "Pourquoi Kolingua",
+    date: "2026",
+    corps: [
+      "Apprendre l’anglais depuis le français, avec un parcours clair — pas un jeu de cartes sans fin.",
+      "Chapitre 1 gratuit, le reste en Premium. Produit phare que je construis en public.",
+    ],
+  },
+  {
+    id: "craft",
+    titre: "Moins de texte, plus de preuve",
+    date: "2026",
+    corps: [
+      "Un portfolio doit montrer le travail, pas le raconter. D’où l’expérience 3D et les projets ouverts sur place.",
+      "Si ça demande un paragraphe pour s’expliquer, le produit n’est pas assez clair.",
+    ],
+  },
+];
 
 export const competences = [
   "Next.js",

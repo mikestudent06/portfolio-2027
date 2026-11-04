@@ -1,7 +1,8 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
-import { featuredProjects, type Project } from "@/lib/content";
+import { featuredProjects, notes, type Project } from "@/lib/content";
+import { paintCity, paintTerrace } from "@/components/experience/outdoor";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -464,37 +465,108 @@ export function mountExperience(): () => void {
   box(0.03, 0.1, 12, M.white, -4.98, 0.05, 1, room, false);
   box(0.08, 0.12, 0.02, M.white, 0.55, 1.18, -3.98, room, false);
 
-  const skyMat = new THREE.MeshBasicMaterial({ map: skyDay, toneMapped: false });
+  const cityCanvas = document.createElement("canvas");
+  cityCanvas.width = 512;
+  cityCanvas.height = 512;
+  const cityCtx = cityCanvas.getContext("2d") as CanvasRenderingContext2D;
+  paintCity(cityCtx, 512, 512, 0, false);
+  const cityTex = new THREE.CanvasTexture(cityCanvas);
+  cityTex.colorSpace = THREE.SRGBColorSpace;
+  cityTex.anisotropy = maxAniso;
+
+  const terraceCanvas = document.createElement("canvas");
+  terraceCanvas.width = 512;
+  terraceCanvas.height = 512;
+  const terraceCtx = terraceCanvas.getContext("2d") as CanvasRenderingContext2D;
+  paintTerrace(terraceCtx, 512, 512, 0, false);
+  const terraceTex = new THREE.CanvasTexture(terraceCanvas);
+  terraceTex.colorSpace = THREE.SRGBColorSpace;
+  terraceTex.anisotropy = maxAniso;
+
+  const cityMat = new THREE.MeshBasicMaterial({ map: cityTex, toneMapped: false });
+  const skyMat = new THREE.MeshBasicMaterial({
+    map: skyDay,
+    toneMapped: false,
+    transparent: true,
+    opacity: 0.82,
+  });
+
+  const roomPick: THREE.Object3D[] = [];
+  const markPick = (obj: THREE.Object3D, data: Record<string, string>) => {
+    obj.userData.interact = data;
+    roomPick.push(obj);
+    return obj;
+  };
+
+  let windowOpen = false;
+  let doorForced = false;
+
   const win = new THREE.Group();
   win.position.set(-4.97, 1.72, 1.45);
   win.rotation.y = Math.PI / 2;
   room.add(win);
   box(1.52, 1.96, 0.05, M.oakPale, 0, 0, 0, win);
-  box(1.32, 1.76, 0.02, skyMat, 0, 0, 0.018, win, false);
+  box(1.32, 1.76, 0.01, cityMat, 0, 0, -0.02, win, false);
+  const sashL = new THREE.Group();
+  sashL.position.set(-0.33, 0, 0.02);
+  win.add(sashL);
+  const sashR = new THREE.Group();
+  sashR.position.set(0.33, 0, 0.02);
+  win.add(sashR);
+  const glassL = box(0.64, 1.72, 0.02, skyMat, 0.32, 0, 0, sashL, false);
+  const glassR = box(0.64, 1.72, 0.02, skyMat, -0.32, 0, 0, sashR, false);
+  markPick(glassL, { type: "window" });
+  markPick(glassR, { type: "window" });
   box(0.03, 1.76, 0.04, M.oakPale, 0, 0, 0.03, win, false);
   box(1.32, 0.03, 0.04, M.oakPale, 0, 0, 0.03, win, false);
-  box(1.56, 0.04, 0.08, M.oakPale, 0, -1.0, 0.02, win);
+  markPick(box(1.56, 0.04, 0.08, M.oakPale, 0, -1.0, 0.02, win), { type: "window" });
 
   const winBack = new THREE.Group();
   winBack.position.set(-2.18, 2.12, -3.97);
   room.add(winBack);
   box(1.72, 1.18, 0.05, M.oakPale, 0, 0, 0, winBack);
-  box(1.52, 0.98, 0.02, skyMat, 0, 0, 0.018, winBack, false);
+  box(1.52, 0.98, 0.01, cityMat, 0, 0, -0.02, winBack, false);
+  const backSash = new THREE.Group();
+  backSash.position.set(0, 0, 0.02);
+  winBack.add(backSash);
+  markPick(box(1.52, 0.98, 0.02, skyMat, 0, 0, 0, backSash, false), { type: "window" });
   box(0.03, 0.98, 0.04, M.oakPale, 0, 0, 0.03, winBack, false);
   box(1.52, 0.03, 0.04, M.oakPale, 0, 0, 0.03, winBack, false);
 
-  box(0.72, 0.52, 0.03, M.frame, -0.05, 2.18, -3.97, room);
-  box(0.62, 0.42, 0.012, std(0xd8cbb6, 0.9), -0.05, 2.18, -3.952, room, false);
-  box(0.4, 0.52, 0.03, M.frame, 0.62, 2.14, -3.97, room);
-  box(0.3, 0.42, 0.012, std(0x4a5d72, 0.85), 0.62, 2.14, -3.952, room, false);
+  function setWindowOpen(open: boolean) {
+    if (open === windowOpen) return;
+    windowOpen = open;
+    const ease = reduceMotion ? "none" : "power2.out";
+    const dur = reduceMotion ? 0.01 : 0.55;
+    gsap.to(sashL.rotation, { y: open ? -1.15 : 0, duration: dur, ease });
+    gsap.to(sashR.rotation, { y: open ? 1.15 : 0, duration: dur, ease });
+    gsap.to(backSash.rotation, { x: open ? -1.05 : 0, duration: dur, ease });
+    gsap.to(skyMat, { opacity: open ? 0.08 : 0.82, duration: dur, ease });
+  }
+
+  const kolinguaTex = new THREE.TextureLoader().load("/projets/kolingua.png");
+  kolinguaTex.colorSpace = THREE.SRGBColorSpace;
+  kolinguaTex.anisotropy = maxAniso;
+  box(0.92, 0.68, 0.03, M.frame, 0.2, 2.2, -3.97, room);
+  const featuredArt = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.8, 0.56),
+    new THREE.MeshBasicMaterial({ map: kolinguaTex, toneMapped: false }),
+  );
+  featuredArt.position.set(0.2, 2.2, -3.952);
+  room.add(featuredArt);
+  markPick(featuredArt, { type: "project", slug: "kolingua" });
+  box(0.4, 0.52, 0.03, M.frame, 0.95, 2.14, -3.97, room);
+  const featuredBadge = box(0.3, 0.42, 0.012, std(0xc45a28, 0.85), 0.95, 2.14, -3.952, room, false);
+  markPick(featuredBadge, { type: "project", slug: "kolingua" });
 
   const beyond = new THREE.Mesh(
-    new THREE.PlaneGeometry(5, 4),
-    new THREE.MeshBasicMaterial({ color: 0xffd9b0, toneMapped: false }),
+    new THREE.PlaneGeometry(5.2, 4.2),
+    new THREE.MeshBasicMaterial({ map: terraceTex, toneMapped: false }),
   );
-  beyond.position.set(2.6, 1.5, -5.2);
+  beyond.position.set(2.6, 1.6, -5.35);
   room.add(beyond);
-  box(1.2, 0.02, 1.2, new THREE.MeshBasicMaterial({ color: 0xf3c99a }), 2.6, 0, -4.6, room, false);
+  box(1.6, 0.04, 1.4, new THREE.MeshBasicMaterial({ color: 0xc4a882 }), 2.6, 0.02, -4.7, room, false);
+  box(1.6, 0.35, 0.04, new THREE.MeshBasicMaterial({ color: 0xe8dfd0 }), 2.6, 0.2, -4.05, room, false);
 
   const jamb = M.woodDark;
   box(0.1, 2.3, 0.16, jamb, 2.05, 1.15, -4, room);
@@ -503,7 +575,8 @@ export function mountExperience(): () => void {
   const doorPivot = new THREE.Group();
   doorPivot.position.set(2.1, 0, -4);
   room.add(doorPivot);
-  box(1.0, 2.2, 0.05, M.wood, 0.5, 1.1, 0, doorPivot);
+  const doorLeaf = box(1.0, 2.2, 0.05, M.wood, 0.5, 1.1, 0, doorPivot);
+  markPick(doorLeaf, { type: "door" });
   (
     [
       [0.27, 1.55, 0.32, 0.9],
@@ -511,11 +584,16 @@ export function mountExperience(): () => void {
       [0.27, 0.55, 0.32, 0.8],
       [0.73, 0.55, 0.32, 0.8],
     ] as const
-  ).forEach(([x, y, w, h]) => box(w, h, 0.025, M.wood, x, y, 0.035, doorPivot));
+  ).forEach(([x, y, w, h]) => markPick(box(w, h, 0.025, M.wood, x, y, 0.035, doorPivot), { type: "door" }));
   const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.12, 12), M.chrome);
   handle.rotation.z = Math.PI / 2;
   handle.position.set(0.88, 1.05, 0.07);
   doorPivot.add(handle);
+  markPick(handle, { type: "door" });
+
+  function setDoorForced(open: boolean) {
+    doorForced = open;
+  }
 
   const rug = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 2.05), M.rug);
   rug.rotation.x = -Math.PI / 2;
@@ -586,13 +664,6 @@ export function mountExperience(): () => void {
   box(1.45, 0.42, 0.4, M.oakPale, -2.05, 0.21, -3.58, room);
   box(1.45, 0.03, 0.42, M.desk, -2.05, 0.43, -3.58, room);
   box(0.02, 0.36, 0.38, std(0xcfc4b4, 0.5), -2.05, 0.21, -3.58, room, false);
-  box(0.22, 0.16, 0.16, M.plastic, -1.55, 0.53, -3.52, room);
-  const led = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.08, 0.018),
-    new THREE.MeshBasicMaterial({ color: 0x5a7bff, toneMapped: false }),
-  );
-  led.position.set(-1.55, 0.545, -3.438);
-  room.add(led);
   box(0.16, 0.03, 0.11, std(0x8b2e2e, 0.7), -2.42, 0.46, -3.5, room);
   box(0.16, 0.025, 0.12, std(0x1f3a5f, 0.7), -2.42, 0.488, -3.5, room);
   box(0.16, 0.028, 0.1, std(0xc4a35a, 0.7), -2.42, 0.515, -3.5, room);
@@ -611,6 +682,7 @@ export function mountExperience(): () => void {
   const levels = [0.05, 0.5, 0.96, 1.42, 1.88, 2.26];
   levels.forEach((y) => box(sw, 0.03, sd, M.oakPale, 0, y, 0, shelf));
   const br = rng(31);
+  let noteBookIndex = 0;
   for (let row = 0; row < 5; row++) {
     const y0 = levels[row] + 0.016;
     let z = -sd / 2 + 0.07;
@@ -631,6 +703,10 @@ export function mountExperience(): () => void {
       const depth = 0.2 + br() * 0.08;
       const m = box(depth, height, thick, bookMats[Math.floor(br() * bookMats.length)], 0.02, y0 + height / 2, z + thick / 2, shelf);
       m.rotation.x = (br() - 0.5) * 0.03;
+      if (noteBookIndex < notes.length && row !== 0 && noteBookIndex < 5) {
+        markPick(m, { type: "book", noteId: notes[noteBookIndex].id });
+        noteBookIndex += 1;
+      }
       z += thick + 0.004;
     }
   }
@@ -886,6 +962,8 @@ export function mountExperience(): () => void {
   const root = document.getElementById("contenu");
   let lampOn = true;
   let hoveringLamp = false;
+  let outdoorT = 0;
+  let roomHover: { type: string; noteId?: string; slug?: string } | null = null;
 
   function applyLighting() {
     const day = lampOn;
@@ -907,13 +985,16 @@ export function mountExperience(): () => void {
     renderer.toneMappingExposure = day ? 1.16 : 1.1;
     skyMat.map = day ? skyDay : skyNight;
     skyMat.needsUpdate = true;
+    paintCity(cityCtx, 512, 512, outdoorT, !day);
+    cityTex.needsUpdate = true;
+    paintTerrace(terraceCtx, 512, 512, outdoorT, !day);
+    terraceTex.needsUpdate = true;
     pShadeMat.emissiveIntensity = day ? 0.12 : 0;
     dShadeMat.emissiveIntensity = day ? 0.25 : 0;
     (pInner.material as THREE.MeshBasicMaterial).color.set(day ? 0xfff4d0 : 0x2a2620);
     (dBulb.material as THREE.MeshBasicMaterial).color.set(day ? 0xfff4d0 : 0x2a2620);
-    (beyond.material as THREE.MeshBasicMaterial).color.set(day ? 0xffe8c8 : 0x1a1008);
     lampBtn.setAttribute("aria-pressed", day ? "true" : "false");
-    lampBtn.textContent = day ? "Lampe · jour" : "Lampe · nuit";
+    lampBtn.setAttribute("aria-label", day ? "Passer en mode nuit" : "Passer en mode jour");
     root?.setAttribute("data-lamp", day ? "day" : "night");
   }
 
@@ -1291,8 +1372,35 @@ export function mountExperience(): () => void {
   let hovered = -1;
   const onCanvasClick = () => {
     if (document.documentElement.classList.contains("portal-open")) return;
-    if (state.world === 1 && hovered >= 0) enterProject(hovered);
-    else if (state.world !== 1 && hoveringLamp) setLamp(!lampOn);
+    if (state.world === 1 && hovered >= 0) {
+      enterProject(hovered);
+      return;
+    }
+    if (state.world === 1) return;
+    if (roomHover?.type === "window") {
+      setWindowOpen(!windowOpen);
+      return;
+    }
+    if (roomHover?.type === "door") {
+      setDoorForced(!doorForced);
+      return;
+    }
+    if (roomHover?.type === "book" && roomHover.noteId) {
+      window.dispatchEvent(
+        new CustomEvent("mm:enter-note", { detail: { noteId: roomHover.noteId } }),
+      );
+      return;
+    }
+    if (roomHover?.type === "project" && roomHover.slug) {
+      const project = projects.find((p) => p.slug === roomHover?.slug);
+      if (project) {
+        window.dispatchEvent(
+          new CustomEvent("mm:enter-project", { detail: { project } }),
+        );
+      }
+      return;
+    }
+    if (hoveringLamp) setLamp(!lampOn);
   };
   canvas.addEventListener("click", onCanvasClick);
   cleanups.push(() => canvas.removeEventListener("click", onCanvasClick));
@@ -1428,14 +1536,28 @@ export function mountExperience(): () => void {
 
     dots.rotation.y = Math.sin(t * 0.05) * 0.05;
     (portalGlow.material as THREE.MeshBasicMaterial).opacity = 0.85 + Math.sin(t * 2.2) * 0.15;
-    doorPivot.rotation.y = state.world === 2 ? -1.45 : 0;
-    doorLight.intensity = state.world === 2 ? 1.4 : 0;
+    const doorOpen = state.world === 2 || doorForced;
+    const doorTarget = doorOpen ? -1.45 : 0;
+    doorPivot.rotation.y += (doorTarget - doorPivot.rotation.y) * (reduceMotion ? 1 : 0.08);
+    doorLight.intensity = doorOpen ? 1.4 : 0;
+
+    outdoorT = t;
+    if (Math.floor(t * 12) !== Math.floor((t - 1 / 60) * 12)) {
+      paintCity(cityCtx, 512, 512, t, !lampOn);
+      cityTex.needsUpdate = true;
+      if (doorOpen || windowOpen) {
+        paintTerrace(terraceCtx, 512, 512, t, !lampOn);
+        terraceTex.needsUpdate = true;
+      }
+    }
 
     const portalOpen = document.documentElement.classList.contains("portal-open");
 
     if (state.world === 1) {
       const z = placeInnerCam(state.innerT, innerWidth / innerHeight);
       updateProjectHud(z);
+      roomHover = null;
+      hoveringLamp = false;
       if (portalOpen) {
         hovered = -1;
         canvas.style.cursor = "";
@@ -1456,15 +1578,21 @@ export function mountExperience(): () => void {
       renderer.setRenderTarget(null);
       renderer.render(inner, innerCam);
     } else {
+      hovered = -1;
       if (portalOpen) {
         hoveringLamp = false;
+        roomHover = null;
         canvas.style.cursor = "";
       } else {
         ray.setFromCamera(mouse.ndc, roomCam);
-        hoveringLamp = ray.intersectObjects(lampPick, true).length > 0;
-        canvas.style.cursor = hoveringLamp ? "pointer" : "";
+        const roomHit = ray.intersectObjects(roomPick, false)[0];
+        const data = roomHit?.object.userData.interact as
+          | { type: string; noteId?: string; slug?: string }
+          | undefined;
+        roomHover = data ?? null;
+        hoveringLamp = !roomHover && ray.intersectObjects(lampPick, true).length > 0;
+        canvas.style.cursor = roomHover || hoveringLamp ? "pointer" : "";
       }
-      hovered = -1;
       let damp: number;
       if (state.world === 0) {
         pathCam.getPoint(state.roomT, tmpP);

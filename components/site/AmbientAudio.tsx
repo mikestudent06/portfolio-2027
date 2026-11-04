@@ -175,7 +175,7 @@ export function AmbientAudio() {
   return (
     <button
       type="button"
-      className="audio-btn"
+      className="icon-btn audio-btn"
       aria-pressed={!muted}
       aria-label={muted ? "Activer la musique de fond" : "Couper la musique de fond"}
       onClick={() => {
@@ -187,7 +187,18 @@ export function AmbientAudio() {
         }
       }}
     >
-      {muted ? "Son · off" : "Son · on"}
+      <svg className="icon-on" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M4 9v6h3.2L12 19.2V4.8L7.2 9H4zm11.5 3a3.5 3.5 0 0 0-1.8-3.1v6.2a3.5 3.5 0 0 0 1.8-3.1zm-1.8-7.3v2.1a5.5 5.5 0 0 1 0 10.4v2.1a7.5 7.5 0 0 0 0-14.6z"
+        />
+      </svg>
+      <svg className="icon-off" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M4 9v6h3.2L12 19.2V4.8L7.2 9H4zm12.7-2.3 1.4 1.4-2.3 2.3 2.3 2.3-1.4 1.4-2.3-2.3-2.3 2.3-1.4-1.4 2.3-2.3-2.3-2.3 1.4-1.4 2.3 2.3 2.3-2.3z"
+        />
+      </svg>
     </button>
   );
 }
