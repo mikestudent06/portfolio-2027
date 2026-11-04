@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
-import { featuredProjects, notes, type Project } from "@/lib/content";
+import { copy, featuredProjects, notes, type Note, type Project } from "@/lib/content";
 import { paintCity, paintTerrace } from "@/components/experience/outdoor";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -664,9 +664,95 @@ export function mountExperience(): () => void {
   box(1.45, 0.42, 0.4, M.oakPale, -2.05, 0.21, -3.58, room);
   box(1.45, 0.03, 0.42, M.desk, -2.05, 0.43, -3.58, room);
   box(0.02, 0.36, 0.38, std(0xcfc4b4, 0.5), -2.05, 0.21, -3.58, room, false);
-  box(0.16, 0.03, 0.11, std(0x8b2e2e, 0.7), -2.42, 0.46, -3.5, room);
-  box(0.16, 0.025, 0.12, std(0x1f3a5f, 0.7), -2.42, 0.488, -3.5, room);
-  box(0.16, 0.028, 0.1, std(0xc4a35a, 0.7), -2.42, 0.515, -3.5, room);
+
+  type BlogBook = {
+    group: THREE.Group;
+    baseY: number;
+    hover: number;
+    noteId: string;
+  };
+  const blogBooks: BlogBook[] = [];
+
+  function hexCss(n: number) {
+    return `#${n.toString(16).padStart(6, "0")}`;
+  }
+
+  function makeBlogCover(note: Note, color: number) {
+    return canvasTex(512, 320, (g, w, h) => {
+      g.fillStyle = hexCss(color);
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = "rgba(255,255,255,0.1)";
+      g.fillRect(0, 0, w, 8);
+      g.fillStyle = "#f7f1e6";
+      g.font = `800 54px ${FONT}`;
+      g.fillText("BLOG", 28, 78);
+      g.fillStyle = "rgba(247,241,230,0.92)";
+      g.font = `700 42px ${FONT}`;
+      g.fillText(note.spine, 28, 140);
+      g.strokeStyle = "rgba(247,241,230,0.35)";
+      g.lineWidth = 4;
+      g.strokeRect(14, 14, w - 28, h - 28);
+      g.fillStyle = "rgba(247,241,230,0.55)";
+      g.font = `600 28px ${FONT}`;
+      g.fillText("Lire →", 28, h - 36);
+    });
+  }
+
+  function addBlogBook(
+    w: number,
+    h: number,
+    d: number,
+    color: number,
+    x: number,
+    y: number,
+    z: number,
+    parent: THREE.Object3D,
+    note: Note,
+    rotY = 0,
+  ) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+    group.rotation.y = rotY;
+    parent.add(group);
+
+    const body = box(w, h, d, std(color, 0.72), 0, 0, 0, group);
+    const pages = box(w * 0.92, h * 0.7, d * 0.04, std(0xf4efe6, 0.55), 0, 0, d / 2 - 0.008, group, false);
+
+    const coverMap = makeBlogCover(note, color);
+    const label = new THREE.Mesh(
+      new THREE.PlaneGeometry(w * 0.9, d * 0.88),
+      new THREE.MeshBasicMaterial({ map: coverMap, toneMapped: false }),
+    );
+    label.rotation.x = -Math.PI / 2;
+    label.position.y = h / 2 + 0.0015;
+    group.add(label);
+
+    const interact = { type: "book", noteId: note.id };
+    markPick(body, interact);
+    markPick(pages, interact);
+    markPick(label, interact);
+    blogBooks.push({ group, baseY: y, hover: 0, noteId: note.id });
+    return group;
+  }
+
+  // Desk stack (side cabinet): red / blue / gold — primary blog affordance
+  const deskBlogNotes = notes.slice(0, 3);
+  const deskBlogColors = [0x8b2e2e, 0x1f3a5f, 0xc4a35a];
+  deskBlogNotes.forEach((note, i) => {
+    const thick = 0.028 + i * 0.004;
+    addBlogBook(
+      0.17,
+      thick,
+      0.125,
+      deskBlogColors[i],
+      -2.42,
+      0.46 + i * 0.032,
+      -3.5,
+      room,
+      note,
+      -0.12 + i * 0.04,
+    );
+  });
 
   const bookColors = [0x1f3a5f, 0x8b2e2e, 0xc4a35a, 0x2d5a45, 0x2b2b2b, 0xe8e0d4, 0x5c3d2e, 0x254e7a, 0x9a4a3a, 0x4a5568];
   const bookMats = bookColors.map((c) => std(c, 0.68));
@@ -682,7 +768,6 @@ export function mountExperience(): () => void {
   const levels = [0.05, 0.5, 0.96, 1.42, 1.88, 2.26];
   levels.forEach((y) => box(sw, 0.03, sd, M.oakPale, 0, y, 0, shelf));
   const br = rng(31);
-  let noteBookIndex = 0;
   for (let row = 0; row < 5; row++) {
     const y0 = levels[row] + 0.016;
     let z = -sd / 2 + 0.07;
@@ -703,10 +788,6 @@ export function mountExperience(): () => void {
       const depth = 0.2 + br() * 0.08;
       const m = box(depth, height, thick, bookMats[Math.floor(br() * bookMats.length)], 0.02, y0 + height / 2, z + thick / 2, shelf);
       m.rotation.x = (br() - 0.5) * 0.03;
-      if (noteBookIndex < notes.length && row !== 0 && noteBookIndex < 5) {
-        markPick(m, { type: "book", noteId: notes[noteBookIndex].id });
-        noteBookIndex += 1;
-      }
       z += thick + 0.004;
     }
   }
@@ -746,8 +827,62 @@ export function mountExperience(): () => void {
   handleMug.rotation.y = Math.PI / 2;
   handleMug.position.set(0.555, 0.81, 0.22);
   room.add(handleMug);
-  box(0.12, 0.025, 0.09, std(0x254e7a, 0.7), 0.88, 0.79, -0.18, room);
-  box(0.12, 0.02, 0.09, std(0x9a4a3a, 0.7), 0.89, 0.81, -0.17, room);
+
+  // Main desk pair (blue / red) — remaining blog articles, clearly labeled
+  const mainDeskNotes = notes.slice(3, 5);
+  const mainDeskColors = [0x254e7a, 0x9a4a3a];
+  mainDeskNotes.forEach((note, i) => {
+    addBlogBook(
+      0.18,
+      0.03,
+      0.13,
+      mainDeskColors[i],
+      0.78 + i * 0.02,
+      0.795 + i * 0.032,
+      -0.12 + i * 0.015,
+      room,
+      note,
+      0.35 - i * 0.1,
+    );
+  });
+
+  function makeBlogSign(
+    x: number,
+    y: number,
+    z: number,
+    rotY: number,
+    noteId: string,
+  ) {
+    const blogPlaqueTex = canvasTex(512, 180, (g, w, h) => {
+      g.fillStyle = "#1f3a5f";
+      g.fillRect(0, 0, w, h);
+      g.fillStyle = "#f7f1e6";
+      g.font = `800 78px ${FONT}`;
+      g.textAlign = "center";
+      g.fillText("BLOG", w / 2, 78);
+      g.font = `600 34px ${FONT}`;
+      g.fillStyle = "rgba(247,241,230,0.9)";
+      g.fillText("Survolez · cliquez", w / 2, 130);
+    });
+    const blogPlaque = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.26, 0.09),
+      new THREE.MeshBasicMaterial({
+        map: blogPlaqueTex,
+        toneMapped: false,
+        transparent: true,
+        side: THREE.DoubleSide,
+      }),
+    );
+    blogPlaque.position.set(x, y, z);
+    blogPlaque.rotation.y = rotY;
+    room.add(blogPlaque);
+    markPick(blogPlaque, { type: "book", noteId });
+    return blogPlaque;
+  }
+
+  // Standing signs next to both blog stacks so they read as blogs from the camera
+  makeBlogSign(-2.18, 0.58, -3.4, 0.4, notes[0].id);
+  makeBlogSign(0.62, 0.9, -0.05, 0.55, notes[3].id);
 
   const lampPick: THREE.Object3D[] = [];
   const markLamp = (m: THREE.Object3D) => {
@@ -1558,6 +1693,11 @@ export function mountExperience(): () => void {
       updateProjectHud(z);
       roomHover = null;
       hoveringLamp = false;
+      document.getElementById("book-tip")?.classList.remove("on");
+      blogBooks.forEach((b) => {
+        b.hover += (0 - b.hover) * 0.18;
+        b.group.position.y = b.baseY + b.hover * 0.055;
+      });
       if (portalOpen) {
         hovered = -1;
         canvas.style.cursor = "";
@@ -1593,6 +1733,23 @@ export function mountExperience(): () => void {
         hoveringLamp = !roomHover && ray.intersectObjects(lampPick, true).length > 0;
         canvas.style.cursor = roomHover || hoveringLamp ? "pointer" : "";
       }
+      const bookTip = document.getElementById("book-tip");
+      const hoverNoteId = roomHover?.type === "book" ? roomHover.noteId : undefined;
+      const hoveringBook = Boolean(hoverNoteId);
+      if (bookTip) {
+        bookTip.classList.toggle("on", hoveringBook && !portalOpen);
+        if (hoverNoteId) {
+          const note = notes.find((n) => n.id === hoverNoteId);
+          bookTip.textContent = note
+            ? `${copy.blogKicker} · ${note.spine} — cliquez pour lire`
+            : copy.blogTip;
+        }
+      }
+      blogBooks.forEach((b) => {
+        const active = hoverNoteId === b.noteId && !portalOpen;
+        b.hover += ((active ? 1 : 0) - b.hover) * 0.18;
+        b.group.position.y = b.baseY + b.hover * 0.055;
+      });
       let damp: number;
       if (state.world === 0) {
         pathCam.getPoint(state.roomT, tmpP);

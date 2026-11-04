@@ -34,7 +34,7 @@ export const person = {
   prenom: "Michel",
   nom: "Mouhani",
   nomComplet: "Michel Mouhani",
-  jobTitle: "Développeur full-stack & mobile",
+  jobTitle: "Développeur & fondateur · Apkaid Solution",
   location: "Pointe-Noire, Congo-Brazzaville",
   country: "Congo-Brazzaville",
   email: "michel.mouhani@outlook.com",
@@ -44,21 +44,24 @@ export const person = {
 } as const;
 
 export const copy = {
-  metier: "Full-stack & mobile · Pointe-Noire",
+  metier: "Studio digital · Pointe-Noire",
   heroHint: "Faites défiler",
-  aproposTitre: "Méthode avant effets.",
-  apropos: "Sites, apps et produits — Next.js, React Native, Node.js.",
+  aproposTitre: "Du brief au produit en ligne.",
+  apropos:
+    "Sites vitrines, applications et outils métier — clairs pour vos clients, rapides à utiliser, faciles à trouver. Avec Apkaid Solution.",
   aproposLong: [
-    "Développeur full-stack et mobile basé à Pointe-Noire, je conçois des applications web et mobiles, des sites vitrines et des boutiques e-commerce. Spécialisé en React, Node.js, TypeScript et React Native, j’allie rigueur technique, performance et expérience utilisateur.",
-    "Chaque projet part d’un objectif business clair : application métier, site vitrine qui se trouve sur Google, ou plateforme e-commerce fiable. Du frontend au backend, je livre des solutions complètes, maintenables et évolutives.",
-    "Fondateur d’Apkaid et développeur au sein de Ginov (France), je travaille sur des produits qui ont un impact — au Congo et au-delà. Mon objectif : des outils numériques utiles, rapides, et que d’autres développeurs peuvent faire vivre sans douleur.",
+    "Développeur et fondateur d’Apkaid Solution à Pointe-Noire, je conçois des sites vitrines, des applications web et mobiles, et des boutiques e-commerce. L’objectif : un produit net, performant, et utile dès le premier jour.",
+    "Chaque projet part d’un besoin business clair — générer des contacts, vendre en ligne, ou faire gagner du temps à une équipe. Je livre des solutions complètes, maintenables, pensées pour le mobile autant que pour le bureau.",
+    "Entre Apkaid Solution et des missions avec Ginov (France), je travaille sur des produits qui comptent — au Congo et ailleurs. Des outils numériques que vos utilisateurs adoptent, et que votre équipe peut faire évoluer sans friction.",
   ],
   mission:
-    "Créer des applications qui ne sont pas seulement fonctionnelles, mais réellement performantes et sécurisées — des produits que les utilisateurs apprécient et que les équipes peuvent maintenir.",
-  contactTitre: "Travaillons ensemble.",
-  contact: "Un brief, une idée ? Écrivez-moi.",
-  cue: "Dans l’écran",
-  projectsTip: "Cliquez pour entrer",
+    "Créer des produits numériques vraiment utiles : performants, compréhensibles, et durables — pour vos clients comme pour vos équipes.",
+  contactTitre: "Parlons de votre projet.",
+  contact: "Un brief, une idée, un délai ? Écrivez-moi.",
+  cue: "Entrez dans l’écran",
+  projectsTip: "Cliquez pour ouvrir",
+  blogTip: "Blog — cliquez pour lire",
+  blogKicker: "Blog",
   loaderReady: "Le bureau est prêt.",
   loaderWait: "Préparation du bureau…",
   enter: "Entrer",
@@ -68,55 +71,62 @@ export const copy = {
 export type Note = {
   id: string;
   titre: string;
+  /** Short spine / cover label for the 3D book. */
+  spine: string;
   date: string;
   corps: string[];
 };
 
-/** Short notes surfaced when clicking books in the 3D office. */
+/** Blog articles opened from the books on the 3D office desk. */
 export const notes: Note[] = [
   {
     id: "seo-congo",
-    titre: "SEO local, sans jargon",
+    titre: "Être trouvé à Pointe-Noire",
+    spine: "SEO local",
     date: "2025",
     corps: [
-      "Un site au Congo se trouve d’abord sur le téléphone. Pages rapides, titres clairs, Google Business — avant les fancy animations.",
-      "Je commence toujours par l’intention de recherche, pas par la maquette.",
+      "Au Congo, un site se trouve d’abord sur le téléphone. Pages rapides, titres clairs, fiche Google Business : voilà ce qui compte avant les animations.",
+      "Je commence toujours par l’intention de recherche — ce que vos clients tapent vraiment — pas par la maquette.",
     ],
   },
   {
     id: "mobile-first",
-    titre: "Ship mobile, think native",
+    titre: "Application mobile ou site d’abord ?",
+    spine: "Mobile",
     date: "2025",
     corps: [
-      "React Native quand l’app doit vivre hors navigateur. Progressive web quand le budget et le délai priment.",
-      "Le bon choix, c’est celui que l’utilisateur ouvre vraiment chaque semaine.",
+      "Une app native quand vos utilisateurs doivent y revenir chaque semaine, hors navigateur. Un site soigné quand le budget et le délai priment.",
+      "Le bon choix, c’est celui que vos clients ouvrent vraiment — pas celui qui impressionne en réunion.",
     ],
   },
   {
     id: "apkaid-studio",
-    titre: "Apkaid, une agence légère",
+    titre: "Apkaid Solution, un studio agile",
+    spine: "Studio",
     date: "2025",
     corps: [
-      "Peu de process, beaucoup de livrables. Brief → prototype → prod, avec un interlocuteur unique.",
-      "L’idée : la qualité d’un studio, la réactivité d’un indépendant.",
+      "Peu de process, beaucoup de livrables. Brief → prototype → mise en ligne, avec un interlocuteur unique.",
+      "La qualité d’un studio, la réactivité d’un indépendant — pour les entreprises qui veulent avancer vite.",
     ],
   },
   {
     id: "kolingua-note",
     titre: "Pourquoi Kolingua",
+    spine: "Kolingua",
     date: "2026",
     corps: [
       "Apprendre l’anglais depuis le français, avec un parcours clair — pas un jeu de cartes sans fin.",
-      "Chapitre 1 gratuit, le reste en Premium. Produit phare que je construis en public.",
+      "Chapitre 1 gratuit, le reste en Premium. Le produit phare que je construis en public avec Apkaid Solution.",
     ],
   },
   {
     id: "craft",
-    titre: "Moins de texte, plus de preuve",
+    titre: "Montrer le travail, pas le raconter",
+    spine: "Preuve",
     date: "2026",
     corps: [
-      "Un portfolio doit montrer le travail, pas le raconter. D’où l’expérience 3D et les projets ouverts sur place.",
-      "Si ça demande un paragraphe pour s’expliquer, le produit n’est pas assez clair.",
+      "Un portfolio doit faire vivre le produit : d’où ce bureau 3D et des projets que l’on ouvre sur place.",
+      "Si un service a besoin d’un long paragraphe pour s’expliquer, il n’est pas encore assez clair.",
     ],
   },
 ];
@@ -568,9 +578,9 @@ export const experiences: Experience[] = [
   {
     periode: "2025 — aujourd’hui",
     titre: "Fondateur",
-    lieu: "Apkaid, Pointe-Noire",
+    lieu: "Apkaid Solution, Pointe-Noire",
     description:
-      "Création de l’agence, du site, de l’offre et du suivi client. Sites, applications et UI/UX pour des entreprises au Congo et à l’étranger.",
+      "Création du studio, du site, de l’offre et du suivi client. Sites, applications et UI/UX pour des entreprises au Congo et à l’étranger.",
     stack: ["Next.js", "TypeScript", "React Native", "UI/UX"],
   },
   {
@@ -638,20 +648,19 @@ export function getProject(slug: string): Project | undefined {
 
 export const seo = {
   titleDefault:
-    "Michel Mouhani — Développeur full-stack & mobile au Congo-Brazzaville",
+    "Michel Mouhani — Développeur & Apkaid Solution à Pointe-Noire",
   titleTemplate: "%s · Michel Mouhani",
   description:
-    "Michel Mouhani, développeur full-stack et mobile à Pointe-Noire. Applications web, apps React Native, sites vitrines et e-commerce — Next.js, Node.js, TypeScript.",
+    "Michel Mouhani, développeur et fondateur d’Apkaid Solution à Pointe-Noire. Sites vitrines, applications web et mobiles, e-commerce — conçus pour convertir et être trouvés.",
   keywords: [
-    "développeur full-stack Congo Brazzaville",
-    "développeur mobile Pointe-Noire",
-    "création site web Congo",
-    "application React Native Congo",
-    "Next.js Congo Brazzaville",
+    "développeur web Congo Brazzaville",
+    "création site web Pointe-Noire",
     "agence digitale Pointe-Noire",
-    "Michel Mouhani",
-    "Apkaid",
-    "développeur freelance Congo",
+    "Apkaid Solution",
+    "application mobile Congo",
     "site vitrine SEO Congo",
+    "Michel Mouhani",
+    "développeur freelance Congo",
+    "studio digital Pointe-Noire",
   ],
 };

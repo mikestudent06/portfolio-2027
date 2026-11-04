@@ -30,7 +30,7 @@ export function personJsonLd() {
     },
     worksFor: {
       "@type": "Organization",
-      name: "Apkaid",
+      name: "Apkaid Solution",
       url: "https://apkaid.com/",
     },
     knowsAbout: [

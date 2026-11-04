@@ -14,7 +14,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = pageMetadata({
   title: "À propos",
-  description: `${person.nomComplet}, ${person.jobTitle} à ${person.location}. Parcours, méthode et stack : Next.js, React Native, Node.js, TypeScript.`,
+  description: `${person.nomComplet}, ${person.jobTitle} à ${person.location}. Sites, applications et produits numériques conçus pour convertir.`,
   path: "/a-propos",
 });
 
