@@ -10,6 +10,7 @@ import {
   person,
 } from "@/lib/content";
 import { mountExperience } from "@/components/experience/engine";
+import { ProjectPortal } from "@/components/experience/ProjectPortal";
 
 const first = featuredProjects[0];
 
@@ -123,32 +124,7 @@ export function Experience() {
         </button>
       </section>
 
-      <div id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
-        <div className="modal-card">
-          <div className="modal-visual">
-            {/* eslint-disable-next-line @next/next/no-img-element -- engine swaps src at runtime */}
-            <img id="m-preview" alt="" hidden />
-            <canvas id="m-canvas" width={1120} height={400} />
-          </div>
-          <button className="modal-close" id="m-close" type="button" aria-label="Fermer la fiche">
-            ×
-          </button>
-          <div className="modal-body">
-            <p className="meta" id="m-meta" />
-            <h3 id="m-title" />
-            <p className="desc" id="m-desc" />
-            <div className="modal-actions">
-              <a className="modal-link" id="m-link" href="#" target="_blank" rel="noopener noreferrer">
-                Voir le projet
-              </a>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- engine updates href */}
-              <a className="modal-link ghost" id="m-page" href="/projets">
-                Fiche détaillée
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProjectPortal />
 
       <div id="loader">
         <div className="load-inner">

@@ -12,6 +12,8 @@ export type Project = {
   couleur: string;
   lien?: string;
   lienLabel?: string;
+  /** When false, the live site refuses iframes — portal uses a staged visit. */
+  embed?: boolean;
   description: string;
   probleme: string;
   fonctionnalites: string[];
@@ -59,7 +61,7 @@ export const copy = {
   contact:
     "Un site, une application, une refonte ? Décrivez-moi le besoin. Je réponds rapidement, depuis Pointe-Noire, pour des clients au Congo et à l’international.",
   cue: "On entre dans l’écran",
-  projectsTip: "Cliquez sur un projet pour ouvrir sa fiche",
+  projectsTip: "Cliquez sur un projet pour y entrer — sans quitter le site",
   loaderReady: "Le bureau est prêt.",
   loaderWait: "Préparation du bureau…",
   enter: "Entrer dans le bureau",
@@ -189,6 +191,7 @@ export const projets: Project[] = [
     annee: "2026",
     couleur: "#c45a28",
     lien: "https://kolingua.apkaid.com/",
+    embed: false,
     image: "/projets/kolingua.png",
     featured: true,
     description:

@@ -1290,7 +1290,8 @@ export function mountExperience(): () => void {
   const ray = new THREE.Raycaster();
   let hovered = -1;
   const onCanvasClick = () => {
-    if (state.world === 1 && hovered >= 0) openModal(hovered);
+    if (document.documentElement.classList.contains("portal-open")) return;
+    if (state.world === 1 && hovered >= 0) enterProject(hovered);
     else if (state.world !== 1 && hoveringLamp) setLamp(!lampOn);
   };
   canvas.addEventListener("click", onCanvasClick);
@@ -1374,62 +1375,24 @@ export function mountExperience(): () => void {
     [...$("counter").children].forEach((s, i) => s.classList.toggle("on", i <= best));
   }
 
-  let lastFocus: HTMLElement | null = null;
-  function openModal(i: number) {
+  function enterProject(i: number) {
     const p = projects[i];
-    $("m-meta").textContent = `${p.categorie}, ${p.annee}`;
-    $("m-title").textContent = p.titre;
-    $("m-desc").textContent = p.description;
-    const live = $("m-link") as HTMLAnchorElement;
-    const page = $("m-page") as HTMLAnchorElement;
-    page.href = `/projets/${p.slug}`;
-    if (p.lien) {
-      live.href = p.lien;
-      live.hidden = false;
-    } else {
-      live.hidden = true;
+    const flash = document.getElementById("flash-cool");
+    if (flash && !reduceMotion) {
+      gsap.fromTo(
+        flash,
+        { opacity: 0 },
+        { opacity: 0.55, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" },
+      );
     }
-    const previewEl = $("m-preview") as HTMLImageElement;
-    const c = $("m-canvas") as HTMLCanvasElement;
-    if (p.image) {
-      previewEl.src = p.image;
-      previewEl.alt = `Aperçu de ${p.titre}`;
-      previewEl.hidden = false;
-      c.hidden = true;
-    } else {
-      previewEl.removeAttribute("src");
-      previewEl.hidden = true;
-      c.hidden = false;
-      const ctx = c.getContext("2d");
-      if (ctx) drawArt(ctx, 0, 0, c.width, c.height, p.couleur, 100 + i * 7);
-    }
-    lastFocus = document.activeElement as HTMLElement | null;
-    $("modal").classList.add("open");
-    $("m-close").focus();
-    gsap.fromTo(".modal-card", { y: 24, opacity: 0, scale: 0.98 }, { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" });
+    window.dispatchEvent(
+      new CustomEvent("mm:enter-project", { detail: { project: p } }),
+    );
   }
 
-  function closeModal() {
-    $("modal").classList.remove("open");
-    lastFocus?.focus();
-  }
-
-  const onClose = () => closeModal();
-  $("m-close").addEventListener("click", onClose);
-  const onModalClick = (e: MouseEvent) => {
-    if ((e.target as HTMLElement).id === "modal") closeModal();
-  };
-  $("modal").addEventListener("click", onModalClick);
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape") closeModal();
-  };
-  addEventListener("keydown", onKey);
   const onAgain = () => window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
   $("again").addEventListener("click", onAgain);
   cleanups.push(() => {
-    $("m-close").removeEventListener("click", onClose);
-    $("modal").removeEventListener("click", onModalClick);
-    removeEventListener("keydown", onKey);
     $("again").removeEventListener("click", onAgain);
   });
 
@@ -1468,13 +1431,20 @@ export function mountExperience(): () => void {
     doorPivot.rotation.y = state.world === 2 ? -1.45 : 0;
     doorLight.intensity = state.world === 2 ? 1.4 : 0;
 
+    const portalOpen = document.documentElement.classList.contains("portal-open");
+
     if (state.world === 1) {
       const z = placeInnerCam(state.innerT, innerWidth / innerHeight);
       updateProjectHud(z);
-      ray.setFromCamera(mouse.ndc, innerCam);
-      const hit = ray.intersectObjects(cards.map((c) => c.mesh))[0];
-      hovered = hit ? (hit.object.userData.index as number) : -1;
-      canvas.style.cursor = hovered >= 0 ? "pointer" : "";
+      if (portalOpen) {
+        hovered = -1;
+        canvas.style.cursor = "";
+      } else {
+        ray.setFromCamera(mouse.ndc, innerCam);
+        const hit = ray.intersectObjects(cards.map((c) => c.mesh))[0];
+        hovered = hit ? (hit.object.userData.index as number) : -1;
+        canvas.style.cursor = hovered >= 0 ? "pointer" : "";
+      }
       cards.forEach((c, i) => {
         c.hover += ((i === hovered ? 1 : 0) - c.hover) * 0.1;
         const s = 1 + c.hover * 0.05;
@@ -1486,9 +1456,14 @@ export function mountExperience(): () => void {
       renderer.setRenderTarget(null);
       renderer.render(inner, innerCam);
     } else {
-      ray.setFromCamera(mouse.ndc, roomCam);
-      hoveringLamp = ray.intersectObjects(lampPick, true).length > 0;
-      canvas.style.cursor = hoveringLamp ? "pointer" : "";
+      if (portalOpen) {
+        hoveringLamp = false;
+        canvas.style.cursor = "";
+      } else {
+        ray.setFromCamera(mouse.ndc, roomCam);
+        hoveringLamp = ray.intersectObjects(lampPick, true).length > 0;
+        canvas.style.cursor = hoveringLamp ? "pointer" : "";
+      }
       hovered = -1;
       let damp: number;
       if (state.world === 0) {
